@@ -2,6 +2,7 @@
 import { Career, careers } from '@/data/careerData';
 
 interface UserProfile {
+  name?: string;
   academicPerformance: number;
   skills: string[];
   interests: string[];
@@ -63,7 +64,9 @@ const calculateCompatibility = (
   }
   
   // GPA requirement (10% of score)
-  if (userProfile.academicPerformance >= career.academicReqs.minGPA) {
+  // Note: adjusted for 10.0 scale
+  const normalizedGPA = (userProfile.academicPerformance / 10) * 4; // Convert 10.0 scale to 4.0 scale
+  if (normalizedGPA >= career.academicReqs.minGPA) {
     score += 10;
     reasons.push(`Your academic performance meets or exceeds the typical requirements for this career.`);
   } else {
@@ -141,5 +144,69 @@ export const generateCareerInsights = (recommendations: ReturnType<typeof getCar
     topSkillsToFocus: skillsArray.slice(0, 5).map(item => item.skill),
     growthOutlook: recommendations[0]?.career.growthOutlook || "Moderate",
     workEnvironmentTypes: [...new Set(recommendations.slice(0, 3).flatMap(rec => rec.career.workEnvironment))]
+  };
+};
+
+// Analyze skill gaps for a career recommendation
+export const analyzeSkillGaps = (recommendation: ReturnType<typeof getCareerRecommendations>[0]) => {
+  // Essential skills for the career
+  const essentialSkills = recommendation.career.skills;
+  
+  // Extract the user's skills from the recommendation reasons
+  const userSkillText = recommendation.reasons.find(r => r.includes("Your skills in"))?.replace("Your skills in ", "").replace(" align with this career.", "");
+  const userSkills = userSkillText ? userSkillText.split(', ').filter(s => !s.includes('etc.')) : [];
+  
+  // Find missing skills
+  const missingSkills = essentialSkills.filter(skill => 
+    !userSkills.some(userSkill => 
+      skill.toLowerCase().includes(userSkill.toLowerCase()) || 
+      userSkill.toLowerCase().includes(skill.toLowerCase())
+    )
+  );
+  
+  // Calculate skill gap score (percentage of missing skills)
+  const skillGapScore = Math.round((missingSkills.length / essentialSkills.length) * 100);
+  
+  return {
+    missingSkills: missingSkills.slice(0, 6), // Limit to top 6 missing skills
+    skillGapScore
+  };
+};
+
+// Generate learning roadmap for a career recommendation
+export const generateLearningRoadmap = (recommendation: ReturnType<typeof getCareerRecommendations>[0]) => {
+  // Get the career and skill gaps
+  const career = recommendation.career;
+  const skillGaps = analyzeSkillGaps(recommendation);
+  
+  // Common learning activities by time frame
+  const shortTermActivities = [
+    `Complete an online course on ${skillGaps.missingSkills[0] || career.skills[0]}`,
+    `Start a personal project using ${career.skills[1] || 'relevant skills'}`,
+    `Join communities related to ${career.title}`,
+    `Read books or articles about ${career.interests[0]}`,
+    `Attend webinars on ${career.skills[2] || 'industry trends'}`
+  ];
+  
+  const mediumTermActivities = [
+    `Get certified in ${skillGaps.missingSkills[1] || career.skills[0]}`,
+    `Contribute to open-source projects related to ${career.skills[1]}`,
+    `Take advanced courses on ${skillGaps.missingSkills[0] || career.skills[2]}`,
+    `Build a portfolio showcasing your ${career.skills[0]} skills`,
+    `Network with professionals in the ${career.title} field`
+  ];
+  
+  const longTermActivities = [
+    `Pursue a specialized degree or certification in ${career.interests[0]}`,
+    `Gain hands-on experience through internships or entry-level positions`,
+    `Mentor others in ${career.skills[0]}`,
+    `Develop expertise in ${skillGaps.missingSkills[2] || 'advanced areas'} of ${career.title}`,
+    `Stay updated with emerging trends and technologies in ${career.title}`
+  ];
+  
+  return {
+    shortTerm: shortTermActivities,
+    mediumTerm: mediumTermActivities,
+    longTerm: longTermActivities
   };
 };

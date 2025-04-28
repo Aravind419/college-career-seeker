@@ -19,6 +19,32 @@ const getScoreColor = (score: number): string => {
   return 'bg-gray-500';
 };
 
+// Function to convert USD salary to INR
+const convertToRupees = (salaryRange: string): string => {
+  // Extract numbers from the salary range (assuming format like "$50,000 - $80,000")
+  const matches = salaryRange.match(/\$([0-9,]+)/g);
+  
+  if (!matches || matches.length === 0) {
+    return salaryRange; // Return original if no dollar amounts found
+  }
+  
+  // Process each match (removing $ and commas, then converting)
+  const convertedValues = matches.map(match => {
+    const numericValue = parseInt(match.replace(/[$,]/g, ''));
+    // Converting USD to INR (approximate exchange rate of 75)
+    const inrValue = numericValue * 75;
+    return `₹${inrValue.toLocaleString('en-IN')}`;
+  });
+  
+  // Replace original values with converted ones
+  let result = salaryRange;
+  matches.forEach((match, index) => {
+    result = result.replace(match, convertedValues[index]);
+  });
+  
+  return result;
+};
+
 const CareerCard: React.FC<CareerCardProps> = ({ career, compatibilityScore, reasons, rank }) => {
   // Emoji or icon based on rank
   const rankIndicator = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
@@ -67,7 +93,7 @@ const CareerCard: React.FC<CareerCardProps> = ({ career, compatibilityScore, rea
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div>
               <h4 className="text-xs font-semibold text-gray-500">SALARY RANGE</h4>
-              <p className="text-sm">{career.salaryRange}</p>
+              <p className="text-sm">{convertToRupees(career.salaryRange)}</p>
             </div>
             <div>
               <h4 className="text-xs font-semibold text-gray-500">GROWTH OUTLOOK</h4>

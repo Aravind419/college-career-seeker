@@ -6,9 +6,13 @@ import Footer from '@/components/Footer';
 import CareerCard from '@/components/CareerCard';
 import CategoryChart from '@/components/CategoryChart';
 import CareerInsights from '@/components/CareerInsights';
+import AlternativeCareerOptions from '@/components/AlternativeCareerOptions';
+import LearningRoadmap from '@/components/LearningRoadmap';
+import SkillGapAnalysis from '@/components/SkillGapAnalysis';
 import { Button } from '@/components/ui/button';
-import { getCareerCategoryAnalysis, generateCareerInsights } from '@/lib/recommendationEngine';
+import { getCareerCategoryAnalysis, generateCareerInsights, analyzeSkillGaps, generateLearningRoadmap } from '@/lib/recommendationEngine';
 import { Career } from '@/data/careerData';
+import { MessageCircle } from 'lucide-react';
 
 // Type for recommendation items
 interface Recommendation {
@@ -16,6 +20,15 @@ interface Recommendation {
   compatibilityScore: number;
   reasons: string[];
 }
+
+// Motivational quotes by career category
+const careerQuotes = {
+  "Technology": "The technology you use impresses no one. The experience you create with it is everything.",
+  "Business": "Success in business requires training, discipline and hard work. But if you're not frightened by these things, the opportunities are just as great today as they ever were.",
+  "Healthcare": "The art of medicine consists of amusing the patient while nature cures the disease.",
+  "Creative": "Creativity is intelligence having fun.",
+  "Sciences": "The science of today is the technology of tomorrow."
+};
 
 const Results = () => {
   const navigate = useNavigate();
@@ -26,6 +39,16 @@ const Results = () => {
     growthOutlook: string;
     workEnvironmentTypes: string[];
   } | null>(null);
+  const [skillGaps, setSkillGaps] = useState<{
+    missingSkills: string[];
+    skillGapScore: number;
+  } | null>(null);
+  const [learningRoadmap, setLearningRoadmap] = useState<{
+    shortTerm: string[];
+    mediumTerm: string[];
+    longTerm: string[];
+  } | null>(null);
+  const [motivationalQuote, setMotivationalQuote] = useState<string>("");
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -37,8 +60,23 @@ const Results = () => {
       setRecommendations(parsedRecommendations);
       
       // Generate additional insights
-      setCategoryAnalysis(getCareerCategoryAnalysis(parsedRecommendations));
+      const categoryAnalysisData = getCareerCategoryAnalysis(parsedRecommendations);
+      setCategoryAnalysis(categoryAnalysisData);
+      
       setInsights(generateCareerInsights(parsedRecommendations));
+      
+      // Get skill gaps analysis
+      const skillGapsAnalysis = analyzeSkillGaps(parsedRecommendations[0]);
+      setSkillGaps(skillGapsAnalysis);
+      
+      // Generate learning roadmap
+      const roadmap = generateLearningRoadmap(parsedRecommendations[0]);
+      setLearningRoadmap(roadmap);
+      
+      // Set motivational quote based on top category
+      const topCategory = categoryAnalysisData[0]?.category || "Technology";
+      setMotivationalQuote(careerQuotes[topCategory as keyof typeof careerQuotes] || 
+        "The future depends on what you do today.");
     } else {
       // If no recommendations found, redirect to home
       navigate('/');
@@ -74,6 +112,15 @@ const Results = () => {
             </p>
           </div>
           
+          {/* Motivational Quote */}
+          <div className="bg-career-light-blue bg-opacity-10 rounded-lg p-4 mb-12 text-center">
+            <div className="flex items-center justify-center mb-2">
+              <MessageCircle className="text-career-blue mr-2" size={20} />
+              <h3 className="text-lg font-semibold text-career-blue">Career Inspiration</h3>
+            </div>
+            <p className="text-career-indigo italic">"{motivationalQuote}"</p>
+          </div>
+          
           {/* Top Career Matches */}
           <div className="mb-16">
             <h2 className="text-2xl font-bold text-career-blue mb-6">
@@ -91,26 +138,6 @@ const Results = () => {
                 />
               ))}
             </div>
-            
-            {/* Additional Matches */}
-            {recommendations.length > 3 && (
-              <div className="mt-8">
-                <h3 className="text-xl font-semibold text-career-indigo mb-4">
-                  Additional Career Matches
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {recommendations.slice(3, 6).map((rec, index) => (
-                    <CareerCard 
-                      key={rec.career.id}
-                      career={rec.career}
-                      compatibilityScore={rec.compatibilityScore}
-                      reasons={rec.reasons}
-                      rank={index + 4}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
           
           {/* Analytics and Insights */}
@@ -136,6 +163,30 @@ const Results = () => {
                 />
               )}
             </div>
+          </div>
+          
+          {/* Skill Gap Analysis */}
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold text-career-blue mb-6">
+              Skill Gap Analysis
+            </h2>
+            {skillGaps && <SkillGapAnalysis skillGaps={skillGaps} />}
+          </div>
+          
+          {/* Learning Roadmap */}
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold text-career-blue mb-6">
+              Personalized Learning Roadmap
+            </h2>
+            {learningRoadmap && <LearningRoadmap roadmap={learningRoadmap} />}
+          </div>
+          
+          {/* Alternative Career Options */}
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold text-career-blue mb-6">
+              Alternative Career Paths
+            </h2>
+            <AlternativeCareerOptions careers={recommendations.slice(3, 6)} />
           </div>
           
           {/* Call to Action */}
