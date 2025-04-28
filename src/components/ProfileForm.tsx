@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { skillsList, interestsList, academicSubjects } from '@/data/careerData';
@@ -12,6 +11,7 @@ import { toast } from 'sonner';
 
 interface ProfileFormProps {
   onSubmit: (profileData: {
+    name: string;
     academicPerformance: number;
     skills: string[];
     interests: string[];
@@ -21,14 +21,14 @@ interface ProfileFormProps {
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ onSubmit }) => {
-  const [academicPerformance, setAcademicPerformance] = useState<number>(3.0);
+  const [name, setName] = useState<string>('');
+  const [academicPerformance, setAcademicPerformance] = useState<number>(7.0);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [personalValues, setPersonalValues] = useState<string[]>([]);
   const navigate = useNavigate();
   
-  // Personal values options
   const personalValueOptions = [
     "Work-Life Balance",
     "High Income",
@@ -77,6 +77,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSubmit }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!name.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
+    
     if (selectedSkills.length < 2) {
       toast.error("Please select at least 2 skills");
       return;
@@ -93,6 +98,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSubmit }) => {
     }
     
     onSubmit({
+      name,
       academicPerformance,
       skills: selectedSkills,
       interests: selectedInterests,
@@ -105,17 +111,33 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSubmit }) => {
   
   return (
     <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-white rounded-lg shadow-md">
+      {/* Name Input Section */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-career-indigo">Your Name</h3>
+        <div className="space-y-1">
+          <Label htmlFor="name">Full Name</Label>
+          <Input
+            id="name"
+            type="text"
+            placeholder="Enter your full name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full"
+          />
+        </div>
+      </div>
+
       {/* Academic Performance Section */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-career-indigo">Academic Performance</h3>
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <Label htmlFor="gpa">GPA (on 4.0 scale): {academicPerformance.toFixed(1)}</Label>
+            <Label htmlFor="gpa">GPA (on 10.0 scale): {academicPerformance.toFixed(1)}</Label>
           </div>
           <Slider
             id="gpa"
             min={1.0}
-            max={4.0}
+            max={10.0}
             step={0.1}
             value={[academicPerformance]}
             onValueChange={value => setAcademicPerformance(value[0])}
@@ -123,9 +145,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSubmit }) => {
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
             <span>1.0</span>
-            <span>2.0</span>
-            <span>3.0</span>
-            <span>4.0</span>
+            <span>5.0</span>
+            <span>10.0</span>
           </div>
         </div>
       </div>

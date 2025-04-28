@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -79,15 +78,11 @@ const About = () => {
               Project Team
             </h2>
             <p className="text-gray-700 mb-4">
-              This project was developed by [Your Name] as part of [Course/Project Name] at [Your Institution].
+              This project was developed by students from the Information Technology Department:
             </p>
-            <p className="text-gray-700 mb-4">
-              Special thanks to:
-            </p>
-            <ul className="list-disc pl-5 text-gray-700">
-              <li>[Professor/Mentor Name] for guidance and project supervision</li>
-              <li>[Team Member Names] for contributions to development and testing</li>
-              <li>[Any other acknowledgments]</li>
+            <ul className="list-disc pl-5 text-gray-700 space-y-2">
+              <li><span className="font-medium">Aravind</span> - 3rd Year, IT Department</li>
+              <li><span className="font-medium">Karthik</span> - 3rd Year, IT Department</li>
             </ul>
           </div>
         </div>
