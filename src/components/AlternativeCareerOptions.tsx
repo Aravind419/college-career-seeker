@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 interface AlternativeCareerProps {
   careers: Array<{
     career: {
-      id: number;
+      id: string | number;
       title: string;
       description: string;
       skills: string[];
